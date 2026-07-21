@@ -70,7 +70,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, default='buffalo_l', help='InsightFace model name (default: buffalo_l)')
     parser.add_argument('--provider', type=str, default='CUDAExecutionProvider', help='ONNX provider to use (default: CUDAExecutionProvider)')
     parser.add_argument('--device', type=int, default=0, help='CUDA device id (default: 0)')
-    parser.add_argument('--max-fps', type=float, default=60, help='Maximum detection FPS (0 = unlimited)')
+    parser.add_argument('--max-fps', type=float, default=0.0, help='Maximum detection FPS (0 = unlimited)')
     parser.add_argument('--det-size', type=int, default=640, help='Detection size (default: 640). Set 0 for auto.')
     args = parser.parse_args()
 
