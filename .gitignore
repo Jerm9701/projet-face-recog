@@ -1,0 +1,7 @@
+F03-face-tracking/remake/data/
+F03-face-tracking/remake/runs/
+F03-face-tracking/remake/test_imgs/
+F03-face-tracking/retinaface-remake/data/
+F03-face-tracking/retinaface-remake/runs/
+.gitignore/
+captures/
