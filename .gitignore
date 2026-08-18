@@ -5,3 +5,5 @@ F03-face-tracking/retinaface-remake/data/
 F03-face-tracking/retinaface-remake/runs/
 .gitignore/
 captures/
+GGEyeTracking/
+Eye tracking\F02-calibration-camera\calib_imgs/
