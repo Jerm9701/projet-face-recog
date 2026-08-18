@@ -133,8 +133,21 @@ def decode_landmarks(anchors: Tensor, deltas: Tensor) -> Tensor:
 
 
 class FaceDetector:
-    def __init__(self, checkpoint_path: str, device_name: str = "auto", score_threshold: float | None = None, nms_threshold: float | None = None, max_detections: int | None = None) -> None:
-        self.device = torch.device("cuda" if device_name == "auto" and torch.cuda.is_available() else ("cpu" if device_name == "auto" else device_name))
+    def __init__(
+        self,
+        checkpoint_path: str,
+        device_name: str = "auto",
+        use_cpu: bool = False,
+        score_threshold: float | None = None,
+        nms_threshold: float | None = None,
+        max_detections: int | None = None,
+    ) -> None:
+        if use_cpu:
+            self.device = torch.device("cpu")
+        else:
+            self.device = torch.device(
+                "cuda" if device_name == "auto" and torch.cuda.is_available() else ("cpu" if device_name == "auto" else device_name)
+            )
         checkpoint = torch.load(checkpoint_path, map_location="cpu")
         config = checkpoint.get("config", {})
         self.image_size = int(config.get("image_size", 512))
@@ -228,7 +241,14 @@ def add_waiting_message(frame: np.ndarray) -> np.ndarray:
 
 
 def run_image(args: argparse.Namespace) -> None:
-    detector = FaceDetector(args.checkpoint, args.device, args.score_threshold, args.nms_threshold, args.max_detections)
+    detector = FaceDetector(
+        args.checkpoint,
+        device_name=args.device,
+        use_cpu=args.cpu,
+        score_threshold=args.score_threshold,
+        nms_threshold=args.nms_threshold,
+        max_detections=args.max_detections,
+    )
     image = cv2.imread(str(Path(args.input_image)))
     if image is None:
         raise FileNotFoundError(args.input_image)
@@ -240,7 +260,14 @@ def run_image(args: argparse.Namespace) -> None:
 
 
 def run_camera(args: argparse.Namespace) -> None:
-    detector = FaceDetector(args.checkpoint, args.device, args.score_threshold, args.nms_threshold, args.max_detections)
+    detector = FaceDetector(
+        args.checkpoint,
+        device_name=args.device,
+        use_cpu=args.cpu,
+        score_threshold=args.score_threshold,
+        nms_threshold=args.nms_threshold,
+        max_detections=args.max_detections,
+    )
     cap = cv2.VideoCapture(args.camera_id)
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open camera {args.camera_id}")
@@ -283,6 +310,7 @@ def build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--checkpoint", required=True)
     common.add_argument("--device", default="auto")
+    common.add_argument("--cpu", action="store_true", help="Force execution on CPU")
     common.add_argument("--score-threshold", type=float, default=None)
     common.add_argument("--nms-threshold", type=float, default=None)
     common.add_argument("--max-detections", type=int, default=None)
