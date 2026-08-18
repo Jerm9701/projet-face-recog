@@ -1,9 +1,9 @@
-F03-face-tracking/remake/data/
-F03-face-tracking/remake/runs/
-F03-face-tracking/remake/test_imgs/
-F03-face-tracking/retinaface-remake/data/
-F03-face-tracking/retinaface-remake/runs/
+eye-tracking/F03-face-tracking/remake/data/
+eye-tracking/F03-face-tracking/remake/runs/
+eye-tracking/F03-face-tracking/remake/test_imgs/
+eye-tracking/F03-face-tracking/retinaface-remake/data/
+eye-tracking/F03-face-tracking/retinaface-remake/runs/
 .gitignore/
 captures/
 GGEyeTracking/
-Eye tracking\F02-calibration-camera\calib_imgs/
+eye-tracking/F02-calibration-camera/calib_imgs/
