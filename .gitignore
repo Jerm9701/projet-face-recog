@@ -7,3 +7,6 @@ eye-tracking/F03-face-tracking/retinaface-remake/runs/
 captures/
 GGEyeTracking/
 eye-tracking/F02-calibration-camera/calib_imgs/
+models/*
+!models/.gitkeep
+eye-tracking/F03-face-tracking/retinaface-remake/draw_test_img.py/

@@ -64,6 +64,7 @@ def run_camera_detection(camera_index: int = 0, model_name: str = 'buffalo_l', p
         if faces:
             no_detect_count = 0
             top_face = max(faces, key=lambda f: f.det_score)
+            
             x1, y1, x2, y2 = top_face.bbox.astype(int)
             x1 = max(0, x1)
             y1 = max(0, y1)
@@ -72,7 +73,8 @@ def run_camera_detection(camera_index: int = 0, model_name: str = 'buffalo_l', p
             if x2 > x1 and y2 > y1:
                 face_crop = frame[y1:y2, x1:x2].copy()
                 #last_face_crop = cv2.resize(face_crop, (160, 160), interpolation=cv2.INTER_LINEAR)
-                cv2.imshow('Top Face', face_crop)
+                face_display = cv2.resize(face_crop,None,fx=2.0,fy=2.0,interpolation=cv2.INTER_LINEAR)
+                cv2.imshow('Top Face', face_display)
         else:
             no_detect_count += 1
             no_face = face_crop.copy()
