@@ -3,6 +3,7 @@ eye-tracking/F03-face-tracking/remake/runs/
 eye-tracking/F03-face-tracking/remake/test_imgs/
 eye-tracking/F03-face-tracking/retinaface-remake/data/
 eye-tracking/F03-face-tracking/retinaface-remake/runs/
+eye-tracking/F03-face-tracking/retinaface-remake/test-data/
 .gitignore/
 captures/
 GGEyeTracking/

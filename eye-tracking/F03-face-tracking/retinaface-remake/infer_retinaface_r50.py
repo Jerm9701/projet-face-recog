@@ -259,7 +259,7 @@ def run_image(args: argparse.Namespace) -> None:
     cv2.destroyAllWindows()
 
 
-def run_camera(args: argparse.Namespace) -> None:
+def run_video(args: argparse.Namespace) -> None:
     detector = FaceDetector(
         args.checkpoint,
         device_name=args.device,
@@ -268,41 +268,37 @@ def run_camera(args: argparse.Namespace) -> None:
         nms_threshold=args.nms_threshold,
         max_detections=args.max_detections,
     )
-    cap = cv2.VideoCapture(args.camera_id)
+
+    cap = cv2.VideoCapture(args.input_video)
+
     if not cap.isOpened():
-        raise RuntimeError(f"Cannot open camera {args.camera_id}")
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, args.camera_width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, args.camera_height)
-    first_detection_seen = False
-    missing_count = 0
-    last_detected_frame = None
+        raise RuntimeError(f"Cannot open video: {args.input_video}")
+
+    frame_count = 0
+
     try:
         while True:
             ok, frame = cap.read()
+
             if not ok:
                 break
+
             detections = detector.detect(frame)
-            if len(detections["boxes"]) > 0:
-                display = draw_detections(frame, detections)
-                last_detected_frame = display.copy()
-                first_detection_seen = True
-                missing_count = 0
-            else:
-                missing_count += 1
-                if not first_detection_seen:
-                    display = create_status_frame(frame.shape[1], frame.shape[0], "[no face detected]")
-                else:
-                    display = last_detected_frame.copy()
-                    if missing_count >= 5:
-                        display = add_waiting_message(display)
-            cv2.imshow(args.window_name, display)
-            key = cv2.waitKey(1) & 0xFF
-            if key in (27, ord('q'), ord('Q')):
-                break
+
+            display = draw_detections(frame, detections)
+
+            frame_count += 1
+
+            if frame_count % 30 == 0:
+                print(
+                    f"Frame {frame_count} - "
+                    f"{len(detections['boxes'])} face(s)"
+                )
+
+        print(f"Video completed: {frame_count} frames processed")
+
     finally:
         cap.release()
-        cv2.destroyAllWindows()
-
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
@@ -322,7 +318,7 @@ def build_parser() -> argparse.ArgumentParser:
     p2.add_argument("--camera-id", type=int, default=0)
     p2.add_argument("--camera-width", type=int, default=1280)
     p2.add_argument("--camera-height", type=int, default=720)
-    p2.set_defaults(func=run_camera)
+    p2.set_defaults(func=run_image)
     return parser
 
 
