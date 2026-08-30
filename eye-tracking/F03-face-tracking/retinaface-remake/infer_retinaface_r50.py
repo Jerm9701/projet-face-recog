@@ -333,11 +333,10 @@ def build_parser() -> argparse.ArgumentParser:
     p1.add_argument("--input-image", required=True)
     p1.add_argument("--output_path", required=True, default="/tmp/result.jpg")
     p1.set_defaults(func=run_image)
-    p2 = sub.add_parser("camera", parents=[common])
-    p2.add_argument("--camera-id", type=int, default=0)
-    p2.add_argument("--camera-width", type=int, default=1280)
-    p2.add_argument("--camera-height", type=int, default=720)
-    p2.set_defaults(func=run_image)
+    p2 = sub.add_parser("video", parents=[common])
+    p2.add_argument("--input-video", required=True)
+    p2.add_argument("--output-path", required=True, default="/tmp/result.mp4")
+    p2.set_defaults(func=run_video)
     return parser
 
 
