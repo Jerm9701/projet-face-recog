@@ -292,6 +292,23 @@ def run_video(args: argparse.Namespace) -> None:
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open video: {args.input_video}")
 
+    # Video characteristics
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    # Output video
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    writer = cv2.VideoWriter(
+        args.output_path,
+        fourcc,
+        fps,
+        (width, height)
+    )
+
+    if not writer.isOpened():
+        raise RuntimeError(f"Cannot create video: {args.output_path}")
+
     frame_count = 0
 
     try:
@@ -301,9 +318,14 @@ def run_video(args: argparse.Namespace) -> None:
             if not ok:
                 break
 
+            # Face detection
             detections = detector.detect(frame)
 
+            # Draw boxes / landmarks
             display = draw_detections(frame, detections)
+
+            # Write processed frame to output video
+            writer.write(display)
 
             frame_count += 1
 
@@ -314,9 +336,11 @@ def run_video(args: argparse.Namespace) -> None:
                 )
 
         print(f"Video completed: {frame_count} frames processed")
+        print(f"Result saved to: {args.output_path}")
 
     finally:
         cap.release()
+        writer.release()
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
