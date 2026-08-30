@@ -249,14 +249,32 @@ def run_image(args: argparse.Namespace) -> None:
         nms_threshold=args.nms_threshold,
         max_detections=args.max_detections,
     )
+
     image = cv2.imread(str(Path(args.input_image)))
+
     if image is None:
         raise FileNotFoundError(args.input_image)
+
     detections = detector.detect(image)
-    display = draw_detections(image, detections) if len(detections["boxes"]) else create_status_frame(image.shape[1], image.shape[0], "[no face detected]")
-    cv2.imshow(args.window_name, display)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
+    display = (
+        draw_detections(image, detections)
+        if len(detections["boxes"])
+        else create_status_frame(
+            image.shape[1],
+            image.shape[0],
+            "[no face detected]"
+        )
+    )
+
+    output_path = args.output_path
+
+    success=cv2.imwrite(output_path, display)
+    if not success:
+        raise RuntimeError(f"Failed to save image to {output_path}")
+
+    print(f"Result saved to {output_path}")
+    print(f"Faces detected: {len(detections['boxes'])}")
 
 
 def run_video(args: argparse.Namespace) -> None:
@@ -313,6 +331,7 @@ def build_parser() -> argparse.ArgumentParser:
     common.add_argument("--window-name", default="RetinaFace-like detector")
     p1 = sub.add_parser("image", parents=[common])
     p1.add_argument("--input-image", required=True)
+    p1.add_argument("--output_path", required=True, default="/tmp/result.jpg")
     p1.set_defaults(func=run_image)
     p2 = sub.add_parser("camera", parents=[common])
     p2.add_argument("--camera-id", type=int, default=0)

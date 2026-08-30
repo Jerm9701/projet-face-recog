@@ -3,6 +3,11 @@ __pycache__
 *.pyc
 venv
 .env
+
 *.pth
 *.pt
 *.onnx
+
+captures/
+eye-tracking/F03-face-tracking/retinaface-remake/runs/
+eye-tracking/F03-face-tracking/retinaface-remake/test-data/
