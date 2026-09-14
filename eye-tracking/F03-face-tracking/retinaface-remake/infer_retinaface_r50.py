@@ -1,4 +1,4 @@
-#python .\infer_retinaface_r50.py camera --checkpoint .\runs\retinaface_r50\best.pt --score-threshold 0.7
+﻿#python .\infer_retinaface_r50.py camera --checkpoint .\runs\retinaface_r50\best.pt --score-threshold 0.7
 #python .\infer_retinaface_r50.py image --checkpoint .\runs\retinaface_r50\best.pt --input-image ..\..\captures\rd_img1.jpg
 from __future__ import annotations
 
@@ -209,10 +209,58 @@ class FaceDetector:
 
 
 LANDMARK_COLORS = [(255, 0, 0), (0, 255, 255), (0, 0, 255), (255, 0, 255), (0, 165, 255)]
+ANONYMIZATION_SCALES = (0.06, 0.08, 0.06, 0.08)
 
 
-def draw_detections(image: np.ndarray, detections: Dict[str, np.ndarray]) -> np.ndarray:
+def anonymize_face_quadrants(
+    image: np.ndarray,
+    box: np.ndarray,
+    scales: Sequence[float] = ANONYMIZATION_SCALES,
+) -> None:
+    """Blur and pixelate the four quadrants of a detected face in place."""
+    image_height, image_width = image.shape[:2]
+    x1, y1, x2, y2 = box.astype(int)
+    x1, x2 = sorted((np.clip(x1, 0, image_width), np.clip(x2, 0, image_width)))
+    y1, y2 = sorted((np.clip(y1, 0, image_height), np.clip(y2, 0, image_height)))
+    if x2 - x1 < 2 or y2 - y1 < 2:
+        return
+
+    middle_x = x1 + (x2 - x1) // 2
+    middle_y = y1 + (y2 - y1) // 2
+    quadrants = (
+        (x1, y1, middle_x, middle_y),
+        (middle_x, y1, x2, middle_y),
+        (x1, middle_y, middle_x, y2),
+        (middle_x, middle_y, x2, y2),
+    )
+
+    for (qx1, qy1, qx2, qy2), scale in zip(quadrants, scales):
+        quadrant = image[qy1:qy2, qx1:qx2]
+        quadrant_height, quadrant_width = quadrant.shape[:2]
+        if quadrant_width == 0 or quadrant_height == 0:
+            continue
+
+        blurred = cv2.GaussianBlur(quadrant, (0, 0), sigmaX=7, sigmaY=7)
+        small_width = max(1, int(round(quadrant_width * scale)))
+        small_height = max(1, int(round(quadrant_height * scale)))
+        downscaled = cv2.resize(blurred, (small_width, small_height), interpolation=cv2.INTER_AREA)
+        image[qy1:qy2, qx1:qx2] = cv2.resize(
+            downscaled,
+            (quadrant_width, quadrant_height),
+            interpolation=cv2.INTER_NEAREST,
+        )
+
+
+def draw_detections(
+    image: np.ndarray,
+    detections: Dict[str, np.ndarray],
+    anonymize: bool = False,
+) -> np.ndarray:
     out = image.copy()
+    if anonymize:
+        for box in detections["boxes"]:
+            anonymize_face_quadrants(out, box)
+
     for box, score, landmarks in zip(detections["boxes"], detections["scores"], detections["landmarks"]):
         x1, y1, x2, y2 = box.astype(int)
         cv2.rectangle(out, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -283,7 +331,7 @@ def run_camera(args: argparse.Namespace) -> None:
                 break
             detections = detector.detect(frame)
             if len(detections["boxes"]) > 0:
-                display = draw_detections(frame, detections)
+                display = draw_detections(frame, detections, anonymize=True)
                 last_detected_frame = display.copy()
                 first_detection_seen = True
                 missing_count = 0
